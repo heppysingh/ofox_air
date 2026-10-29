@@ -16,6 +16,8 @@ on init
     
     # Start debug_boot IMMEDIATELY to force permissive and setup paths early
     start debug_boot
+    mkdir /tmp/recovery 0770 root root
+    mkdir /tmp/recovery/sockets 0770 root root
 
     # Load thermal modules for CPU temperature display
     insmod /lib/modules/thermal_interface.ko
@@ -88,6 +90,7 @@ on boot
     chown system system /sys/class/touch/tp_dev/fod_status
     chmod 0664 /sys/class/touch/tp_dev/fod_status
     start load-touch-modules
+    start load-wifi-modules
 
 service touchfeature-hal-1-0 /vendor/bin/hw/vendor.xiaomi.hardware.touchfeature@1.0-service
     class main
@@ -192,3 +195,18 @@ service debug_boot /system/bin/sh /debug_boot.sh
 # Removed redundant debug_boot trigger (started in post-fs)
 
 
+service load-wifi-modules /system/bin/modprobe --all=/lib/modules/modules.load.wifi --dirname=/lib/modules
+    class core
+    user root
+    group root
+    oneshot
+    seclabel u:r:recovery:s0
+
+service wpa_supplicant /system/bin/wpa_supplicant \
+    -Dnl80211 -iwlan0 -c/vendor/etc/wifi/wpa_supplicant.conf \
+    -C/tmp/recovery/sockets
+    class main
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
