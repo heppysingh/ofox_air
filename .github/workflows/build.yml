@@ -73,10 +73,11 @@ jobs:
           git config --global user.email "builder@orangefox.tech"
           git config --global color.ui true
 
-          mkdir ~/fox
-          cd ~/fox
-          repo init --depth=1 -u https://github.com/heppysingh/Manifest -b fox_16.0
-          repo sync
+          mkdir -p ~/sync_tools
+          cd ~/sync_tools
+          git clone https://gitlab.com/OrangeFox/sync.git
+          cd sync
+          ./orangefox_sync.sh --branch ${{ github.event.inputs.MANIFEST_BRANCH || '16.0' }} --path ~/fox
           cd ~/fox/bootable/recovery
           git fetch https://gitlab.com/OrangeFox/bootable/recovery.git fox_16.0_wifidev
           git checkout -B fox_16.0_wifidev FETCH_HEAD
